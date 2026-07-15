@@ -304,7 +304,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  SliverList _buildLedgerList(BuildContext context, LedgerState ledgerState) {
+  Widget _buildLedgerList(BuildContext context, LedgerState ledgerState) {
     if (ledgerState.isLoading && ledgerState.entries.isEmpty) {
       return SliverList(
         delegate: SliverChildBuilderDelegate(

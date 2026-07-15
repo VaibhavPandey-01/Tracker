@@ -288,7 +288,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen>
   }
 
   Widget _buildAmountField({
-    required String id,
     required TextEditingController controller,
     required String label,
     required String hint,
@@ -296,7 +295,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen>
     String? helperText,
   }) {
     return TextFormField(
-      id: id,
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       textInputAction: TextInputAction.next,

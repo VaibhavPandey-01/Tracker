@@ -286,14 +286,12 @@ class _EditFundScreenState extends ConsumerState<EditFundScreen> {
   }
 
   Widget _buildAmountField({
-    required String id,
     required TextEditingController controller,
     required String label,
     required String hint,
     required IconData icon,
   }) {
     return TextFormField(
-      id: id,
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
