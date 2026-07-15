@@ -19,3 +19,7 @@
 -keepattributes *Annotation*
 -keepattributes EnclosingMethod
 -keepattributes InnerClasses
+
+# Prevent warnings from Google Play Core classes (not used by this app)
+-dontwarn com.google.android.play.core.**
+
