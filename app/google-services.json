@@ -12,7 +12,12 @@
           "package_name": "com.savetospend.trackerApp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "813563016036-7317beqes69eo5uot59m96k51qb6nrji.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDQ8DAJ4r4WwWtk5hLacgg9jCmvh4cL3DI"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "813563016036-7317beqes69eo5uot59m96k51qb6nrji.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
