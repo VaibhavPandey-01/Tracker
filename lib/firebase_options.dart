@@ -39,11 +39,11 @@ class DefaultFirebaseOptions {
   // ---------------------------------------------------------------------------
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+    apiKey: 'AIzaSyDQ8DAJ4r4WwWtk5hLacgg9jCmvh4cL3DI',
+    appId: '1:813563016036:android:92eebf00ac1ef00e7bc071',
+    messagingSenderId: '813563016036',
+    projectId: 'tracker-860e2',
+    storageBucket: 'tracker-860e2.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
