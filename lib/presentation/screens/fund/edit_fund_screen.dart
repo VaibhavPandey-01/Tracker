@@ -132,7 +132,6 @@ class _EditFundScreenState extends ConsumerState<EditFundScreen> {
             _buildInfoBanner(context),
             const SizedBox(height: 20),
             _buildAmountField(
-              id: 'edit_fund_principal',
               controller: _principalController,
               label: 'New Principal Amount',
               hint: current.principalAmount.toStringAsFixed(2),
@@ -140,7 +139,6 @@ class _EditFundScreenState extends ConsumerState<EditFundScreen> {
             ),
             const SizedBox(height: 16),
             _buildAmountField(
-              id: 'edit_fund_locked',
               controller: _lockedController,
               label: 'New Locked Amount',
               hint: current.lockedAmount.toStringAsFixed(2),
@@ -148,7 +146,6 @@ class _EditFundScreenState extends ConsumerState<EditFundScreen> {
             ),
             const SizedBox(height: 16),
             TextFormField(
-              id: 'edit_fund_note',
               controller: _noteController,
               decoration: const InputDecoration(
                 labelText: 'Reason for change (optional)',

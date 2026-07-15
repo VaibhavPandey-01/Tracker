@@ -190,7 +190,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Widget _buildEmailField(BuildContext context) {
     return TextFormField(
-      id: 'login_email',
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
@@ -209,7 +208,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Widget _buildPasswordField(BuildContext context) {
     return TextFormField(
-      id: 'login_password',
       controller: _passwordController,
       obscureText: _obscurePassword,
       textInputAction: TextInputAction.done,

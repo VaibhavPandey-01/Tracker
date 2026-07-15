@@ -201,7 +201,6 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
             const SizedBox(height: 16),
             // Note
             TextFormField(
-              id: 'add_expense_note',
               controller: _noteController,
               decoration: const InputDecoration(
                 labelText: 'Note (optional)',
@@ -284,7 +283,6 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen>
 
   Widget _buildAmountField(BuildContext context, FundState state) {
     return TextFormField(
-      id: 'add_expense_amount',
       controller: _amountController,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [

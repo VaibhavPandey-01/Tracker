@@ -224,7 +224,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen>
       child: Column(
         children: [
           _buildAmountField(
-            id: 'setup_principal',
             controller: _principalController,
             label: 'Total Balance (Principal)',
             hint: 'e.g. 8000',
@@ -233,7 +232,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen>
           ),
           const SizedBox(height: 16),
           _buildAmountField(
-            id: 'setup_locked',
             controller: _lockedController,
             label: 'Locked Amount (Savings)',
             hint: 'e.g. 6000',
@@ -242,7 +240,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen>
           ),
           const SizedBox(height: 16),
           TextFormField(
-            id: 'setup_note',
             controller: _noteController,
             textInputAction: TextInputAction.done,
             decoration: const InputDecoration(

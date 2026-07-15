@@ -114,7 +114,6 @@ class _EditExpenseScreenState extends ConsumerState<EditExpenseScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextFormField(
-                id: 'edit_expense_amount',
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
@@ -136,7 +135,6 @@ class _EditExpenseScreenState extends ConsumerState<EditExpenseScreen> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                id: 'edit_expense_note',
                 controller: _noteController,
                 decoration: const InputDecoration(
                   labelText: 'Note (optional)',

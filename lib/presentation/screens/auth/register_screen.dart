@@ -85,7 +85,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 child: Column(
                   children: [
                     TextFormField(
-                      id: 'register_email',
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
@@ -101,7 +100,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      id: 'register_password',
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.next,
@@ -124,7 +122,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      id: 'register_confirm_password',
                       controller: _confirmController,
                       obscureText: _obscureConfirm,
                       textInputAction: TextInputAction.done,
