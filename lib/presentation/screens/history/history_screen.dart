@@ -8,7 +8,7 @@ import '../../../core/utils/date_formatter.dart';
 import '../../providers/ledger_provider.dart';
 import '../../widgets/ledger_list_item.dart';
 import '../../app_router.dart';
-import '../../../domain/entities/ledger_entry.dart';
+import '../../../domain/models/ledger_entry.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});

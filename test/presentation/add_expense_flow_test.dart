@@ -69,6 +69,7 @@ void main() {
 
       // Tap add button without entering amount
       final addButton = find.text('Add Expense');
+      await tester.ensureVisible(addButton);
       await tester.tap(addButton);
       await tester.pump();
 
@@ -96,6 +97,7 @@ void main() {
       await tester.enterText(amountField, '0');
 
       final addButton = find.text('Add Expense');
+      await tester.ensureVisible(addButton);
       await tester.tap(addButton);
       await tester.pump();
 

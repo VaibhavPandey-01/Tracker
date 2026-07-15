@@ -172,8 +172,8 @@ CustomTransitionPage<void> _slideTransition(
 // Auth state listenable for GoRouter refresh
 // ---------------------------------------------------------------------------
 class _AuthStateListenable extends ChangeNotifier {
-  _AuthStateListenable(ProviderContainer container) {
-    _sub = container.listen(authStateProvider, (_, __) => notifyListeners());
+  _AuthStateListenable(Ref ref) {
+    _sub = ref.listen(authStateProvider, (_, __) => notifyListeners());
   }
 
   late final ProviderSubscription _sub;
