@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
-import '../../../core/utils/date_formatter.dart';
-import '../../providers/ledger_provider.dart';
-import '../../widgets/ledger_list_item.dart';
-import '../../app_router.dart';
-import '../../../domain/models/ledger_entry.dart';
+import '../../providers/providers.dart';
+import '../../widgets/neumorphic.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/transaction_tile.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -18,169 +13,286 @@ class HistoryScreen extends ConsumerStatefulWidget {
 }
 
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
-  final ScrollController _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _isFilterPanelExpanded = false;
+  String? _selectedAccountId;
+  String? _selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(ledgerProvider.notifier).loadFirstPage();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim();
+      });
     });
-    _scrollController.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      ref.read(ledgerProvider.notifier).loadNextPage();
-    }
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final ledgerState = ref.watch(ledgerProvider);
+    final tt = Theme.of(context).textTheme;
+    final allTransactions = ref.watch(transactionsProvider);
+    final categories = ref.watch(categoriesProvider);
+    final accounts = ref.watch(accountsProvider);
+    final categoryMap = {for (final c in categories) c.id: c};
+    final accountMap = {for (final a in accounts) a.id: a};
+
+    final filtered = allTransactions.where((t) {
+      if (_selectedAccountId != null && t.accountId != _selectedAccountId) {
+        return false;
+      }
+      if (_selectedCategoryId != null && t.categoryId != _selectedCategoryId) {
+        return false;
+      }
+      if (_searchQuery.isNotEmpty) {
+        final cat = categoryMap[t.categoryId];
+        final query = _searchQuery.toLowerCase();
+        final noteMatch = t.note.toLowerCase().contains(query);
+        final catMatch = cat != null && cat.name.toLowerCase().contains(query);
+        final amountMatch = t.amount.toString().contains(query);
+        if (!noteMatch && !catMatch && !amountMatch) return false;
+      }
+      return true;
+    }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Transaction History'),
-      ),
-      body: ledgerState.entries.isEmpty && ledgerState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ledgerState.entries.isEmpty
-              ? _buildEmptyState(context)
-              : _buildList(context, ledgerState),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.receipt_long_rounded,
-              size: 72,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
-          const SizedBox(height: 16),
-          Text('No transactions yet',
-              style: AppTextStyles.headlineSmall(context)),
-          const SizedBox(height: 8),
-          Text(
-            'Your expenses and fund updates\nwill appear here',
-            style: AppTextStyles.bodyMedium(context),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => context.push(AppRoutes.addExpense),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Add First Expense'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildList(BuildContext context, LedgerState state) {
-    // Group entries by date
-    final grouped = <String, List<_IndexedEntry>>{};
-    for (var i = 0; i < state.entries.length; i++) {
-      final entry = state.entries[i];
-      final key = DateFormatter.relativeDate(entry.timestamp);
-      grouped.putIfAbsent(key, () => []).add(_IndexedEntry(index: i, entry: entry));
-    }
-
-    final groups = grouped.entries.toList();
-
-    return RefreshIndicator(
-      onRefresh: () => ref.read(ledgerProvider.notifier).loadFirstPage(),
-      color: AppColors.primary,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: groups.length + (state.isLoading ? 1 : 0),
-        itemBuilder: (context, groupIndex) {
-          if (groupIndex == groups.length) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Header ──────────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+              child: Text(
+                'Transaction History',
+                style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w700),
               ),
-            );
-          }
-          final group = groups[groupIndex];
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Text(
-                  group.key,
-                  style: AppTextStyles.labelLarge(context)
-                      .copyWith(color: AppColors.primary),
+            ),
+
+            // ── Inset Search Bar ─────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              child: NeumorphicContainer(
+                isInset: true,
+                borderRadius: 16,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                child: TextField(
+                  controller: _searchController,
+                  style: tt.bodyLarge?.copyWith(
+                    color: const Color(0xFFF5F5F7),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Search transactions...',
+                    hintStyle: tt.bodyLarge?.copyWith(
+                      color: const Color(0xFF8A8A93).withOpacity(0.4),
+                    ),
+                    prefixIcon: const Icon(Icons.search, color: Color(0xFF8A8A93), size: 18),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                  ),
                 ),
               ),
-              ...group.value.map((ie) => LedgerListItem(
-                    entry: ie.entry,
-                    onTap: ie.entry.isExpense
-                        ? () => context.push(
-                              AppRoutes.editExpense,
-                              extra: ie.entry,
-                            )
-                        : null,
-                    onDelete: ie.entry.isExpense
-                        ? () async {
-                            final confirm = await _confirmDelete(context);
-                            if (confirm == true) {
-                              await ref
-                                  .read(ledgerProvider.notifier)
-                                  .deleteEntry(ie.entry);
-                            }
-                          }
-                        : null,
-                  )),
-              const Divider(height: 1, indent: 20, endIndent: 20),
-            ],
-          );
-        },
-      ),
-    );
-  }
+            ),
 
-  Future<bool?> _confirmDelete(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Transaction?'),
-        content: const Text(
-            'This will remove the transaction and restore the amount to your balance.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-                foregroundColor: Colors.white),
-            child: const Text('Delete'),
-          ),
-        ],
+            // ── Filter Pill Row ──────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      clipBehavior: Clip.none,
+                      child: Row(
+                        children: [
+                          _FilterPill(
+                            label: _selectedAccountId != null
+                                ? (accountMap[_selectedAccountId]?.name ?? 'Account')
+                                : 'Account',
+                            isActive: _selectedAccountId != null,
+                            onTap: () {
+                              setState(() {
+                                _isFilterPanelExpanded = !_isFilterPanelExpanded;
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _FilterPill(
+                            label: _selectedCategoryId != null
+                                ? (categoryMap[_selectedCategoryId]?.name ?? 'Category')
+                                : 'Category',
+                            isActive: _selectedCategoryId != null,
+                            onTap: () {
+                              setState(() {
+                                _isFilterPanelExpanded = !_isFilterPanelExpanded;
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _FilterPill(
+                            label: 'Date',
+                            isActive: false,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Date filter coming soon')),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _FilterPill(
+                            label: 'Amount',
+                            isActive: false,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Amount filter coming soon')),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  NeumorphicContainer(
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
+                    isInset: _isFilterPanelExpanded,
+                    onTap: () {
+                      setState(() {
+                        _isFilterPanelExpanded = !_isFilterPanelExpanded;
+                      });
+                    },
+                    child: const Icon(Icons.tune, size: 16, color: Color(0xFFB8B8C0)),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Expanded Filter Panel ────────────────────────────────────────
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                child: NeumorphicContainer(
+                  borderRadius: 20,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Filter by Account', style: tt.labelMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('All'),
+                            selected: _selectedAccountId == null,
+                            onSelected: (_) => setState(() => _selectedAccountId = null),
+                          ),
+                          ...accounts.map((a) => ChoiceChip(
+                                label: Text(a.name),
+                                selected: _selectedAccountId == a.id,
+                                onSelected: (_) => setState(() => _selectedAccountId = a.id),
+                              )),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Filter by Category', style: tt.labelMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('All'),
+                            selected: _selectedCategoryId == null,
+                            onSelected: (_) => setState(() => _selectedCategoryId = null),
+                          ),
+                          ...categories.map((c) => ChoiceChip(
+                                label: Text(c.name),
+                                selected: _selectedCategoryId == c.id,
+                                onSelected: (_) => setState(() => _selectedCategoryId = c.id),
+                              )),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              crossFadeState: _isFilterPanelExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 250),
+            ),
+
+            // ── List of Transactions ─────────────────────────────────────────
+            Expanded(
+              child: filtered.isEmpty
+                  ? const NeumorphicEmptyState(
+                      icon: Icons.receipt_long_outlined,
+                      text: 'No transactions found.\nAdjust your filters or query to find items.',
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(24, 10, 24, 100),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, i) {
+                        final t = filtered[i];
+                        final cat = categoryMap[t.categoryId];
+                        final acc = accountMap[t.accountId];
+                        if (cat == null || acc == null) return const SizedBox();
+
+                        return TransactionTile(
+                          transaction: t,
+                          category: cat,
+                          account: acc,
+                          onDelete: () => ref.read(transactionsProvider.notifier).delete(t.id),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _IndexedEntry {
-  const _IndexedEntry({required this.index, required this.entry});
-  final int index;
-  final LedgerEntry entry;
+class _FilterPill extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _FilterPill({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+
+    return NeumorphicContainer(
+      borderRadius: 14,
+      isInset: isActive,
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: Text(
+        label,
+        style: tt.labelMedium?.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: isActive ? const Color(0xFFF5F5F7) : const Color(0xFF8A8A93),
+        ),
+      ),
+    );
+  }
 }

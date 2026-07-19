@@ -1,0 +1,52 @@
+# Codemagic CI/CD configuration for SafeSpend Android Build
+# Place this file in the root of your repository (the Tracker folder).
+
+workflows:
+  android-workflow:
+    name: SafeSpend Android Release Build
+    max_build_duration: 60
+    instance_type: linux # Fastest and most cost-effective instance for Android builds
+    environment:
+      groups:
+        - env_vars # You can define environment variables in Codemagic UI under this group
+      vars:
+        PACKAGE_NAME: "com.example.tracker_app"
+      flutter: stable
+      java: 17
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: true
+        - pattern: 'master'
+          include: true
+          source: true
+
+    scripts:
+      - name: Set up local.properties
+        script: |
+          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+      - name: Fetch Flutter dependencies
+        script: |
+          flutter packages pub get
+      - name: Lint check
+        script: |
+          flutter analyze
+      - name: Build Android Release APK
+        script: |
+          flutter build apk --release --no-tree-shake-icons
+
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+
+    publishing:
+      email:
+        recipients:
+          # Add emails to receive build notifications and download links
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true

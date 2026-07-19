@@ -13,7 +13,7 @@ android/local.properties
 android/key.properties
 android/.gradle
 android/app/debug.keystore
-android/app/google-services.json  # DO NOT commit — add your own
+# android/app/google-services.json  # DO NOT commit — add your own
 
 # iOS
 ios/Pods/
@@ -37,3 +37,10 @@ lib/firebase_options.dart  # Re-generate with: flutterfire configure
 *.log
 .DS_Store
 coverage/
+
+# Credentials & Env
+.env
+.env.*
+*credential*.json
+*credentials*.json
+
