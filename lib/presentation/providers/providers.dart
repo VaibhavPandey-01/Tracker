@@ -40,7 +40,7 @@ final isOnboardedProvider = StateProvider<bool>((ref) => false);
 
 // ─── Theme Provider (Dark mode locked) ───────────────────────────────────────
 
-final themeModeProvider = Provider<ThemeMode>((ref) => ThemeMode.dark);
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
 
 // ─── Accounts ────────────────────────────────────────────────────────────────
 

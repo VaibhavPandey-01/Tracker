@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
 
-const Color baseSurfaceColor = Color(0xFF0A0A0C);
-const Color raisedHighlightColor = Color(0x662A2A30); // #2A2A30 at 40%
-const Color raisedShadowColor = Color(0x99000000);    // #000000 at 60%
-
-const Color insetHighlightColor = Color(0x332A2A30);  // Inner highlight
-const Color insetShadowColor = Color(0xB3000000);     // Inner shadow
-
 const List<Color> rainbowColors = [
   Color(0xFF7C3AED), // Violet
   Color(0xFF2563EB), // Blue
@@ -41,6 +34,12 @@ class NeumorphicContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final Color surfaceColor = isDark ? const Color(0xFF0A0A0C) : const Color(0xFFF0F0F3);
+    final Color topHighlight = isDark ? const Color(0x662A2A30) : const Color(0xE6FFFFFF);
+    final Color bottomShadow = isDark ? const Color(0x99000000) : const Color(0x4FA3B1C6);
+
     Widget content = child ?? const SizedBox();
     if (padding != null) {
       content = Padding(padding: padding!, child: content);
@@ -54,7 +53,8 @@ class NeumorphicContainer extends StatelessWidget {
       container = CustomPaint(
         painter: _InsetNeumorphicPainter(
           borderRadius: borderRadius,
-          baseColor: baseSurfaceColor,
+          baseColor: surfaceColor,
+          isDark: isDark,
         ),
         child: content,
       );
@@ -63,17 +63,17 @@ class NeumorphicContainer extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         margin: margin,
         decoration: BoxDecoration(
-          color: baseSurfaceColor,
+          color: surfaceColor,
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
-            const BoxShadow(
-              color: raisedHighlightColor,
-              offset: Offset(-6, -6),
+            BoxShadow(
+              color: topHighlight,
+              offset: const Offset(-6, -6),
               blurRadius: 16,
             ),
-            const BoxShadow(
-              color: raisedShadowColor,
-              offset: Offset(6, 6),
+            BoxShadow(
+              color: bottomShadow,
+              offset: const Offset(6, 6),
               blurRadius: 16,
             ),
           ],
@@ -118,10 +118,12 @@ class NeumorphicContainer extends StatelessWidget {
 class _InsetNeumorphicPainter extends CustomPainter {
   final double borderRadius;
   final Color baseColor;
+  final bool isDark;
 
   _InsetNeumorphicPainter({
     required this.borderRadius,
     required this.baseColor,
+    required this.isDark,
   });
 
   @override
@@ -136,9 +138,13 @@ class _InsetNeumorphicPainter extends CustomPainter {
     canvas.save();
     canvas.clipRRect(rrect);
 
+    // Inner shadow colors
+    final Color innerShadowColor = isDark ? const Color(0xB3000000) : const Color(0x66A3B1C6);
+    final Color innerHighlightColor = isDark ? const Color(0x332A2A30) : const Color(0xE6FFFFFF);
+
     // Draw top-left dark inner shadow
     final darkPaint = Paint()
-      ..color = insetShadowColor
+      ..color = innerShadowColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
@@ -151,7 +157,7 @@ class _InsetNeumorphicPainter extends CustomPainter {
 
     // Draw bottom-right light inner shadow
     final lightPaint = Paint()
-      ..color = insetHighlightColor
+      ..color = innerHighlightColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
@@ -167,7 +173,7 @@ class _InsetNeumorphicPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _InsetNeumorphicPainter oldDelegate) {
-    return oldDelegate.borderRadius != borderRadius || oldDelegate.baseColor != baseColor;
+    return oldDelegate.borderRadius != borderRadius || oldDelegate.baseColor != baseColor || oldDelegate.isDark != isDark;
   }
 }
 
@@ -233,7 +239,6 @@ class NeumorphicTextField extends StatelessWidget {
           child: Text(
             labelText,
             style: tt.labelMedium?.copyWith(
-              color: const Color(0xFF8A8A93),
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -248,7 +253,6 @@ class NeumorphicTextField extends StatelessWidget {
             keyboardType: keyboardType,
             onChanged: onChanged,
             style: tt.bodyLarge?.copyWith(
-              color: const Color(0xFFF5F5F7),
               fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
@@ -363,6 +367,7 @@ class RainbowGauge extends StatelessWidget {
               painter: _RainbowArcPainter(
                 percentage: percentage,
                 strokeWidth: strokeWidth,
+                isDark: Theme.of(context).brightness == Brightness.dark,
               ),
             ),
           ),
@@ -379,10 +384,12 @@ class RainbowGauge extends StatelessWidget {
 class _RainbowArcPainter extends CustomPainter {
   final double percentage;
   final double strokeWidth;
+  final bool isDark;
 
   _RainbowArcPainter({
     required this.percentage,
     required this.strokeWidth,
+    required this.isDark,
   });
 
   @override
@@ -393,7 +400,7 @@ class _RainbowArcPainter extends CustomPainter {
 
     // Draw background track line
     final trackPaint = Paint()
-      ..color = const Color(0xFF141416)
+      ..color = isDark ? const Color(0xFF141416) : const Color(0xFFE2E8F0)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -428,6 +435,6 @@ class _RainbowArcPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RainbowArcPainter oldDelegate) {
-    return oldDelegate.percentage != percentage || oldDelegate.strokeWidth != strokeWidth;
+    return oldDelegate.percentage != percentage || oldDelegate.strokeWidth != strokeWidth || oldDelegate.isDark != isDark;
   }
 }

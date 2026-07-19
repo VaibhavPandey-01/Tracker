@@ -51,20 +51,25 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   Row(
                     children: [
-                      NeumorphicContainer(
-                        width: 44,
-                        height: 44,
-                        borderRadius: 22,
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Profile details coming soon')),
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final mode = ref.watch(themeModeProvider);
+                          final isDark = mode == ThemeMode.dark;
+                          return NeumorphicContainer(
+                            width: 44,
+                            height: 44,
+                            borderRadius: 22,
+                            onTap: () {
+                              ref.read(themeModeProvider.notifier).state =
+                                  isDark ? ThemeMode.light : ThemeMode.dark;
+                            },
+                            child: Icon(
+                              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                              color: isDark ? const Color(0xFFB8B8C0) : const Color(0xFF5A5A65),
+                              size: 20,
+                            ),
                           );
                         },
-                        child: const Icon(
-                          Icons.person_outline,
-                          color: Color(0xFFB8B8C0),
-                          size: 20,
-                        ),
                       ),
                       const SizedBox(width: 12),
                       NeumorphicContainer(
