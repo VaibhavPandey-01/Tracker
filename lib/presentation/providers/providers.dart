@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 import '../../data/mock/mock_account_repository.dart';
 import '../../data/mock/mock_category_repository.dart';
 import '../../data/mock/mock_transaction_repository.dart';
@@ -9,209 +7,116 @@ import '../../domain/models/account.dart';
 import '../../domain/models/category.dart';
 import '../../domain/models/transaction.dart';
 import '../../domain/models/recurring_rule.dart';
-import '../../domain/repositories/i_account_repository.dart';
-import '../../domain/repositories/i_category_repository.dart';
-import '../../domain/repositories/i_transaction_repository.dart';
-import '../../domain/repositories/i_recurring_repository.dart';
 
-const _uuid = Uuid();
+// Repositories
+final accountRepositoryProvider = Provider((ref) => MockAccountRepository());
+final categoryRepositoryProvider = Provider((ref) => MockCategoryRepository());
+final transactionRepositoryProvider = Provider((ref) => MockTransactionRepository());
+final recurringRepositoryProvider = Provider((ref) => MockRecurringRepository());
 
-// ─── Repository Providers ───────────────────────────────────────────────────
-
-final accountRepositoryProvider = Provider<IAccountRepository>(
-  (ref) => MockAccountRepository(),
-);
-
-final categoryRepositoryProvider = Provider<ICategoryRepository>(
-  (ref) => MockCategoryRepository(),
-);
-
-final transactionRepositoryProvider = Provider<ITransactionRepository>(
-  (ref) => MockTransactionRepository(),
-);
-
-final recurringRepositoryProvider = Provider<IRecurringRepository>(
-  (ref) => MockRecurringRepository(),
-);
-
-// ─── Onboarding State ────────────────────────────────────────────────────────
-
-final isOnboardedProvider = StateProvider<bool>((ref) => false);
-
-// ─── Theme Provider (Dark mode locked) ───────────────────────────────────────
-
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
-
-// ─── Accounts ────────────────────────────────────────────────────────────────
-
+// State Notifiers
 class AccountsNotifier extends StateNotifier<List<Account>> {
-  final IAccountRepository _repo;
-
-  AccountsNotifier(this._repo) : super(_repo.getAll());
+  final MockAccountRepository _repository;
+  AccountsNotifier(this._repository) : super(_repository.getAll());
 
   void add(Account account) {
-    _repo.add(account);
-    state = _repo.getAll();
+    _repository.add(account);
+    state = _repository.getAll();
   }
 
-  void update(Account account) {
-    _repo.update(account);
-    state = _repo.getAll();
+  void updateAccount(Account account) {
+    _repository.update(account);
+    state = _repository.getAll();
   }
 
-  void delete(String id) {
-    _repo.delete(id);
-    state = _repo.getAll();
+  void deleteAccount(String id) {
+    _repository.delete(id);
+    state = _repository.getAll();
   }
-
-  String generateId() => _uuid.v4();
 }
 
-final accountsProvider =
-    StateNotifierProvider<AccountsNotifier, List<Account>>((ref) {
-  return AccountsNotifier(ref.watch(accountRepositoryProvider));
+final accountsProvider = StateNotifierProvider<AccountsNotifier, List<Account>>((ref) {
+  final repo = ref.watch(accountRepositoryProvider);
+  return AccountsNotifier(repo);
 });
-
-// ─── Categories ──────────────────────────────────────────────────────────────
 
 class CategoriesNotifier extends StateNotifier<List<Category>> {
-  final ICategoryRepository _repo;
-
-  CategoriesNotifier(this._repo) : super(_repo.getAll());
+  final MockCategoryRepository _repository;
+  CategoriesNotifier(this._repository) : super(_repository.getAll());
 
   void add(Category category) {
-    _repo.add(category);
-    state = _repo.getAll();
+    _repository.add(category);
+    state = _repository.getAll();
   }
 
-  void update(Category category) {
-    _repo.update(category);
-    state = _repo.getAll();
+  void updateCategory(Category category) {
+    _repository.update(category);
+    state = _repository.getAll();
   }
-
-  void delete(String id) {
-    _repo.delete(id);
-    state = _repo.getAll();
-  }
-
-  String generateId() => _uuid.v4();
 }
 
-final categoriesProvider =
-    StateNotifierProvider<CategoriesNotifier, List<Category>>((ref) {
-  return CategoriesNotifier(ref.watch(categoryRepositoryProvider));
+final categoriesProvider = StateNotifierProvider<CategoriesNotifier, List<Category>>((ref) {
+  final repo = ref.watch(categoryRepositoryProvider);
+  return CategoriesNotifier(repo);
 });
-
-// ─── Transactions ────────────────────────────────────────────────────────────
 
 class TransactionsNotifier extends StateNotifier<List<Transaction>> {
-  final ITransactionRepository _repo;
-
-  TransactionsNotifier(this._repo) : super(_repo.getAll());
+  final MockTransactionRepository _repository;
+  TransactionsNotifier(this._repository) : super(_repository.getAll());
 
   void add(Transaction transaction) {
-    _repo.add(transaction);
-    state = _repo.getAll();
+    _repository.add(transaction);
+    state = _repository.getAll();
   }
 
-  void update(Transaction transaction) {
-    _repo.update(transaction);
-    state = _repo.getAll();
+  void updateTransaction(Transaction transaction) {
+    _repository.update(transaction);
+    state = _repository.getAll();
   }
 
-  void delete(String id) {
-    _repo.delete(id);
-    state = _repo.getAll();
+  void deleteTransaction(String id) {
+    _repository.delete(id);
+    state = _repository.getAll();
   }
-
-  String generateId() => _uuid.v4();
 }
 
-final transactionsProvider =
-    StateNotifierProvider<TransactionsNotifier, List<Transaction>>((ref) {
-  return TransactionsNotifier(ref.watch(transactionRepositoryProvider));
+final transactionsProvider = StateNotifierProvider<TransactionsNotifier, List<Transaction>>((ref) {
+  final repo = ref.watch(transactionRepositoryProvider);
+  return TransactionsNotifier(repo);
 });
 
-// ─── Recurring Rules ─────────────────────────────────────────────────────────
-
-class RecurringNotifier extends StateNotifier<List<RecurringRule>> {
-  final IRecurringRepository _repo;
-
-  RecurringNotifier(this._repo) : super(_repo.getAll());
+class RecurringRulesNotifier extends StateNotifier<List<RecurringRule>> {
+  final MockRecurringRepository _repository;
+  RecurringRulesNotifier(this._repository) : super(_repository.getAll());
 
   void add(RecurringRule rule) {
-    _repo.add(rule);
-    state = _repo.getAll();
+    _repository.add(rule);
+    state = _repository.getAll();
   }
 
-  void update(RecurringRule rule) {
-    _repo.update(rule);
-    state = _repo.getAll();
+  void updateRule(RecurringRule rule) {
+    _repository.update(rule);
+    state = _repository.getAll();
   }
 
-  void delete(String id) {
-    _repo.delete(id);
-    state = _repo.getAll();
+  void deleteRule(String id) {
+    _repository.delete(id);
+    state = _repository.getAll();
   }
-
-  void toggleActive(String id) {
-    final rule = state.firstWhere((r) => r.id == id);
-    update(rule.copyWith(isActive: !rule.isActive));
-  }
-
-  String generateId() => _uuid.v4();
 }
 
-final recurringProvider =
-    StateNotifierProvider<RecurringNotifier, List<RecurringRule>>((ref) {
-  return RecurringNotifier(ref.watch(recurringRepositoryProvider));
+final recurringRulesProvider = StateNotifierProvider<RecurringRulesNotifier, List<RecurringRule>>((ref) {
+  final repo = ref.watch(recurringRepositoryProvider);
+  return RecurringRulesNotifier(repo);
 });
 
-// ─── Computed / Derived Providers ────────────────────────────────────────────
-
-final totalSpendableProvider = Provider<double>((ref) {
+// Derived Providers
+final totalBalanceProvider = Provider<double>((ref) {
   final accounts = ref.watch(accountsProvider);
-  return accounts.fold(0.0, (sum, a) => sum + a.spendableAmount);
+  return accounts.fold(0.0, (sum, acc) => sum + acc.principalAmount);
 });
 
-final totalPrincipalProvider = Provider<double>((ref) {
+final totalSafeToSpendProvider = Provider<double>((ref) {
   final accounts = ref.watch(accountsProvider);
-  return accounts.fold(0.0, (sum, a) => sum + a.principalAmount);
-});
-
-final totalLockedProvider = Provider<double>((ref) {
-  final accounts = ref.watch(accountsProvider);
-  return accounts.fold(0.0, (sum, a) => sum + a.lockedAmount);
-});
-
-final thisMonthSpendProvider = Provider<double>((ref) {
-  final transactions = ref.watch(transactionsProvider);
-  final now = DateTime.now();
-  return transactions
-      .where((t) => t.date.year == now.year && t.date.month == now.month)
-      .fold(0.0, (sum, t) => sum + t.amount);
-});
-
-final spendByCategoryProvider =
-    Provider.family<Map<String, double>, DateTime>((ref, month) {
-  final transactions = ref.watch(transactionsProvider);
-  final map = <String, double>{};
-  for (final t in transactions) {
-    if (t.date.year == month.year && t.date.month == month.month) {
-      map[t.categoryId] = (map[t.categoryId] ?? 0) + t.amount;
-    }
-  }
-  return map;
-});
-
-final spendPerDayProvider =
-    Provider.family<Map<int, double>, DateTime>((ref, month) {
-  final transactions = ref.watch(transactionsProvider);
-  final map = <int, double>{};
-  for (final t in transactions) {
-    if (t.date.year == month.year && t.date.month == month.month) {
-      map[t.date.day] = (map[t.date.day] ?? 0) + t.amount;
-    }
-  }
-  return map;
+  return accounts.fold(0.0, (sum, acc) => sum + (acc.principalAmount - acc.lockedAmount));
 });

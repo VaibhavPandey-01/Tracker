@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/theme/app_theme.dart';
 
 const List<Color> rainbowColors = [
   Color(0xFF7C3AED), // Violet
@@ -17,7 +18,6 @@ class NeumorphicContainer extends StatelessWidget {
   final double? width;
   final double? height;
   final VoidCallback? onTap;
-  final bool showRainbowBorder;
 
   const NeumorphicContainer({
     super.key,
@@ -29,16 +29,13 @@ class NeumorphicContainer extends StatelessWidget {
     this.width,
     this.height,
     this.onTap,
-    this.showRainbowBorder = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final Color surfaceColor = isDark ? const Color(0xFF0A0A0C) : const Color(0xFFF0F0F3);
-    final Color topHighlight = isDark ? const Color(0x662A2A30) : const Color(0xE6FFFFFF);
-    final Color bottomShadow = isDark ? const Color(0x99000000) : const Color(0x4FA3B1C6);
+    // Soft Neumorphism shadows specifically tailored for #E9E9F2
+    final Color topHighlight = Colors.white.withOpacity(0.9);
+    final Color bottomShadow = const Color(0xFFD1D1E0).withOpacity(0.8);
 
     Widget content = child ?? const SizedBox();
     if (padding != null) {
@@ -53,8 +50,7 @@ class NeumorphicContainer extends StatelessWidget {
       container = CustomPaint(
         painter: _InsetNeumorphicPainter(
           borderRadius: borderRadius,
-          baseColor: surfaceColor,
-          isDark: isDark,
+          baseColor: AppTheme.baseColor,
         ),
         child: content,
       );
@@ -63,42 +59,24 @@ class NeumorphicContainer extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         margin: margin,
         decoration: BoxDecoration(
-          color: surfaceColor,
+          color: AppTheme.baseColor,
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: [
             BoxShadow(
               color: topHighlight,
-              offset: const Offset(-6, -6),
+              offset: const Offset(-8, -8),
               blurRadius: 16,
             ),
             BoxShadow(
               color: bottomShadow,
-              offset: const Offset(6, 6),
+              offset: const Offset(8, 8),
               blurRadius: 16,
             ),
           ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
-          child: Stack(
-            children: [
-              content,
-              if (showRainbowBorder)
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 3,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: rainbowColors,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          child: content,
         ),
       );
     }
@@ -118,12 +96,10 @@ class NeumorphicContainer extends StatelessWidget {
 class _InsetNeumorphicPainter extends CustomPainter {
   final double borderRadius;
   final Color baseColor;
-  final bool isDark;
 
   _InsetNeumorphicPainter({
     required this.borderRadius,
     required this.baseColor,
-    required this.isDark,
   });
 
   @override
@@ -138,16 +114,16 @@ class _InsetNeumorphicPainter extends CustomPainter {
     canvas.save();
     canvas.clipRRect(rrect);
 
-    // Inner shadow colors
-    final Color innerShadowColor = isDark ? const Color(0xB3000000) : const Color(0x66A3B1C6);
-    final Color innerHighlightColor = isDark ? const Color(0x332A2A30) : const Color(0xE6FFFFFF);
+    // Inner shadow colors specifically for #E9E9F2
+    final Color innerShadowColor = const Color(0xFFC0C0D0).withOpacity(0.6);
+    final Color innerHighlightColor = Colors.white.withOpacity(0.9);
 
     // Draw top-left dark inner shadow
     final darkPaint = Paint()
       ..color = innerShadowColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+      ..strokeWidth = 8
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
     final darkPath = Path()
       ..moveTo(-3, size.height + 3)
@@ -159,8 +135,8 @@ class _InsetNeumorphicPainter extends CustomPainter {
     final lightPaint = Paint()
       ..color = innerHighlightColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+      ..strokeWidth = 8
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
     final lightPath = Path()
       ..moveTo(-3, size.height + 3)
@@ -173,38 +149,52 @@ class _InsetNeumorphicPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _InsetNeumorphicPainter oldDelegate) {
-    return oldDelegate.borderRadius != borderRadius || oldDelegate.baseColor != baseColor || oldDelegate.isDark != isDark;
+    return oldDelegate.borderRadius != borderRadius || oldDelegate.baseColor != baseColor;
   }
 }
 
-class NeumorphicButton extends StatelessWidget {
+class NeumorphicButton extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
   final double borderRadius;
-  final bool showRainbowBorder;
   final double? width;
   final double? height;
+  final EdgeInsetsGeometry? padding;
 
   const NeumorphicButton({
     super.key,
     required this.child,
     required this.onTap,
     this.borderRadius = 28.0,
-    this.showRainbowBorder = false,
     this.width,
     this.height,
+    this.padding,
   });
 
   @override
+  State<NeumorphicButton> createState() => _NeumorphicButtonState();
+}
+
+class _NeumorphicButtonState extends State<NeumorphicButton> {
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return NeumorphicContainer(
-      onTap: onTap,
-      borderRadius: borderRadius,
-      showRainbowBorder: showRainbowBorder,
-      width: width,
-      height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Center(child: child),
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: NeumorphicContainer(
+        isInset: _isPressed,
+        borderRadius: widget.borderRadius,
+        width: widget.width,
+        height: widget.height,
+        padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Center(child: widget.child),
+      ),
     );
   }
 }
@@ -215,7 +205,6 @@ class NeumorphicTextField extends StatelessWidget {
   final TextEditingController? controller;
   final TextInputType keyboardType;
   final ValueChanged<String>? onChanged;
-  final bool isNumeric;
 
   const NeumorphicTextField({
     super.key,
@@ -224,7 +213,6 @@ class NeumorphicTextField extends StatelessWidget {
     this.controller,
     this.keyboardType = TextInputType.text,
     this.onChanged,
-    this.isNumeric = false,
   });
 
   @override
@@ -258,7 +246,7 @@ class NeumorphicTextField extends StatelessWidget {
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: tt.bodyLarge?.copyWith(
-                color: const Color(0xFF8A8A93).withOpacity(0.4),
+                color: AppTheme.textSecondary.withOpacity(0.5),
               ),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
@@ -298,14 +286,7 @@ class NeumorphicSwitch extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(17),
-                  boxShadow: value
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFF7C3AED).withOpacity(0.15),
-                            blurRadius: 10,
-                          ),
-                        ]
-                      : null,
+                  color: value ? const Color(0xFFE9E9F2) : Colors.transparent, // Background color doesn't change much to keep it soft
                 ),
               ),
             ),
@@ -319,7 +300,19 @@ class NeumorphicSwitch extends StatelessWidget {
                 width: 26,
                 height: 26,
                 borderRadius: 13,
-                child: const SizedBox(),
+                child: value 
+                    ? Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: rainbowColors,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        margin: const EdgeInsets.all(6),
+                      ) 
+                    : const SizedBox(),
               ),
             ),
           ],
@@ -367,7 +360,6 @@ class RainbowGauge extends StatelessWidget {
               painter: _RainbowArcPainter(
                 percentage: percentage,
                 strokeWidth: strokeWidth,
-                isDark: Theme.of(context).brightness == Brightness.dark,
               ),
             ),
           ),
@@ -384,12 +376,10 @@ class RainbowGauge extends StatelessWidget {
 class _RainbowArcPainter extends CustomPainter {
   final double percentage;
   final double strokeWidth;
-  final bool isDark;
 
   _RainbowArcPainter({
     required this.percentage,
     required this.strokeWidth,
-    required this.isDark,
   });
 
   @override
@@ -398,9 +388,9 @@ class _RainbowArcPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
 
-    // Draw background track line
+    // Draw background track line (very subtle)
     final trackPaint = Paint()
-      ..color = isDark ? const Color(0xFF141416) : const Color(0xFFE2E8F0)
+      ..color = const Color(0xFFD1D1E0).withOpacity(0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -435,6 +425,6 @@ class _RainbowArcPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RainbowArcPainter oldDelegate) {
-    return oldDelegate.percentage != percentage || oldDelegate.strokeWidth != strokeWidth || oldDelegate.isDark != isDark;
+    return oldDelegate.percentage != percentage || oldDelegate.strokeWidth != strokeWidth;
   }
 }

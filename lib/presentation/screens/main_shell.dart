@@ -1,109 +1,108 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/cupertino.dart';
 import '../widgets/neumorphic.dart';
+import '../../core/theme/app_theme.dart';
 import 'dashboard/dashboard_screen.dart';
+import 'accounts/accounts_screen.dart';
 import 'history/history_screen.dart';
 import 'reports/reports_screen.dart';
 import 'add_expense/add_expense_screen.dart';
 
-class MainShell extends ConsumerStatefulWidget {
+class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
   @override
-  ConsumerState<MainShell> createState() => _MainShellState();
+  State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> {
-  int _selectedIndex = 0;
+class _MainShellState extends State<MainShell> {
+  int _currentIndex = 0;
 
-  final _screens = [
-    const DashboardScreen(),
-    const HistoryScreen(),
-    const ReportsScreen(),
-    const AddExpenseScreen(isTab: true),
+  final List<Widget> _screens = const [
+    DashboardScreen(),
+    HistoryScreen(),
+    ReportsScreen(),
+    AccountsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          IndexedStack(
-            index: _selectedIndex,
-            children: _screens,
-          ),
-          
-          // ── Bottom Nav Pill ───────────────────────────────────────────────
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom: 24,
-            child: NeumorphicContainer(
-              borderRadius: 35,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _NavBarItem(
-                    icon: Icons.home_outlined,
-                    selectedIcon: Icons.home_rounded,
-                    isSelected: _selectedIndex == 0,
-                    onTap: () => setState(() => _selectedIndex = 0),
-                  ),
-                  _NavBarItem(
-                    icon: Icons.receipt_long_outlined,
-                    selectedIcon: Icons.receipt_long_rounded,
-                    isSelected: _selectedIndex == 1,
-                    onTap: () => setState(() => _selectedIndex = 1),
-                  ),
-                  _NavBarItem(
-                    icon: Icons.bar_chart_outlined,
-                    selectedIcon: Icons.bar_chart_rounded,
-                    isSelected: _selectedIndex == 2,
-                    onTap: () => setState(() => _selectedIndex = 2),
-                  ),
-                  _NavBarItem(
-                    icon: Icons.add_rounded,
-                    selectedIcon: Icons.add_rounded,
-                    isSelected: _selectedIndex == 3,
-                    onTap: () => setState(() => _selectedIndex = 3),
-                  ),
-                ],
-              ),
+      body: _screens[_currentIndex],
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: NeumorphicContainer(
+            borderRadius: 32,
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, CupertinoIcons.home),
+                _buildNavItem(1, CupertinoIcons.list_bullet),
+                _buildAddButton(),
+                _buildNavItem(2, CupertinoIcons.chart_pie),
+                _buildNavItem(3, CupertinoIcons.person),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
-}
 
-class _NavBarItem extends StatelessWidget {
-  final IconData icon;
-  final IconData selectedIcon;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _NavBarItem({
-    required this.icon,
-    required this.selectedIcon,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return NeumorphicContainer(
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      isInset: isSelected, // Carved-in if active, raised if inactive
-      onTap: onTap,
-      child: Center(
+  Widget _buildNavItem(int index, IconData icon) {
+    final isSelected = _currentIndex == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFD1D1E0).withOpacity(0.4) : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
         child: Icon(
-          isSelected ? selectedIcon : icon,
-          color: isSelected ? const Color(0xFFF5F5F7) : const Color(0xFFB8B8C0),
-          size: 20,
+          icon,
+          color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddButton() {
+    return NeumorphicButton(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => const AddExpenseScreen(),
+        );
+      },
+      borderRadius: 28,
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: rainbowColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.all(12.0),
+          child: Icon(
+            CupertinoIcons.add,
+            color: Colors.white,
+            size: 28,
+          ),
         ),
       ),
     );
